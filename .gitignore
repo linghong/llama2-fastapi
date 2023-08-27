@@ -1,0 +1,38 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+*.venv
+*.venv/
+venv.bak/
+venv.bak/
+
+# PyCharm, VS Code directories
+.idea/
+.vscode/
+
+# Log and database files
+*.log
+*.sqlite
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# FastAPI specific
+instance/
+
+# Uvicorn logs
+uvicorn.log
+
+# pytest cache
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
