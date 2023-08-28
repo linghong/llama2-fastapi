@@ -120,6 +120,8 @@ async def read_users_me(current_user: Annotated[User, Depends(get_current_active
     return current_user
 
 @app.get("/")
-async def root():
-    return {"message": "Hello World"}
+async def root(current_user: User = Depends(get_current_active_user)):
+    if current_user:
+        return {"message": "Hello World"}
+    return {"message": "Unauthorized"}
 
