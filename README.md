@@ -6,30 +6,30 @@ This project is a FastAPI application with various dependencies, including some 
 
 ### System-Level Dependencies - Rust
 
-    This project requires the Rust programming language for some of its Python dependencies. Install Rust using [rustup](https://rustup.rs/):
-    
-    ```bash
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs/ | sh
-    ```
-    
-    Follow the on-screen instructions to complete the installation. Once installed, you might need to source your profile to access Rust binaries.
+  This project requires the Rust programming language for some of its Python dependencies. Install Rust using [rustup](https://rustup.rs/):
+  
+  ```bash
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs/ | sh
+  ```
+  
+  Follow the on-screen instructions to complete the installation. Once installed, you might need to source your profile to access Rust binaries.
 
-    If you're using bash:
-    ```bash
-    source ~/.bash_profile
-    ```
+  If you're using bash:
+  ```bash
+  source ~/.bash_profile
+  ```
 
-    If you're using zsh:
-    ```
-    source ~/.zshenv
-    ```
-    
-    Verify the installation:
+  If you're using zsh:
+  ```
+  source ~/.zshenv
+  ```
+  
+  Verify the installation:
 
-    ```bash
-    rustc --version
-    cargo --version
-    ```
+  ```bash
+  rustc --version
+  cargo --version
+  ```
 
 ### Python Dependencies
 
