@@ -1,2 +1,4 @@
 fastapi[all]
 uvicorn
+python-jose[cryptography]
+passlib-1.7.4
