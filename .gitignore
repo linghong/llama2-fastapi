@@ -36,3 +36,5 @@ uvicorn.log
 
 # Jupyter Notebook
 .ipynb_checkpoints
+
+.env
