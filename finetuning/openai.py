@@ -1,13 +1,10 @@
-import openai
 import os
+from openai import File, FineTuningJob
 
 async def upload_training_file(file_content):
     try:
         print('sending data to OpenAI...')
-        os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-        openai.api_key = os.environ["OPENAI_API_KEY"]
-
-        res = openai.File.create(
+        res = File.create(
             file=file_content,
             purpose='fine-tune' 
         )
@@ -17,7 +14,7 @@ async def upload_training_file(file_content):
 
 async def fine_tune_openai_model(file_id, fine_tuning_model, epochs):
     try:
-        res = openai.FineTuningJob.create(
+        res = FineTuningJob.create(
             training_file=file_id,
             model=fine_tuning_model,
             epochs=epochs
