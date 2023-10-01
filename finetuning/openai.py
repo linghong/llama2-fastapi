@@ -10,16 +10,16 @@ async def upload_training_file(file_content):
         )
         return res["id"]
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        raise ValueError(f"An error occurred: {str(e)}")
 
-async def fine_tune_openai_model(file_id, fine_tuning_model, epochs):
+async def fine_tune_openai_model(file_id, fine_tuning_model, n_epochs):
     try:
         res = FineTuningJob.create(
             training_file=file_id,
             model=fine_tuning_model,
-            epochs=epochs
+            hyperparameters={"n_epochs": n_epochs}
         )
         return  res["fine_tuned_model"]
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        raise ValueError(f"An error occurred: {str(e)}")
 
