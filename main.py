@@ -1,14 +1,18 @@
+import os, json
 from datetime import timedelta
-from typing import Annotated
-from fastapi import  Header, HTTPException, Depends, FastAPI, HTTPException, status
+from typing import Annotated, Optional
+
+from fastapi import FastAPI, HTTPException, UploadFile, BackgroundTasks, Header, Depends, Form, File
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
-import os
 from dotenv import load_dotenv
 
 from config import *
-from models import Token, User
+from models import Token, User, ChatMessages, FineTuningSpecs
+from finetuning.openai import upload_training_file, fine_tune_openai_model
+from finetuning.validation import validate_data_format, validate_messages
 from dependencies import *
+import openai
 
 app = FastAPI()
 
@@ -21,12 +25,17 @@ app.add_middleware(
 )
 
 load_dotenv()  # Load environment variables from .env file
-API_KEY = os.getenv("API_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY")
 
-async def get_api_key(api_key: str = Header(...)):
-    if api_key != API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid API Key")
-    return api_key
+async def get_secret_key(authorization: str = Header(...)):
+    prefix = "Bearer "
+    if not authorization.startswith(prefix):
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid Secret Key")
+    secret_key = authorization[len(prefix):]
+
+    if secret_key != SECRET_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid Secret Key")
+    return secret_key
 
 @app.post("/token", response_model=Token)
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
@@ -53,6 +62,69 @@ async def root(current_user: User = Depends(get_current_active_user)):
         return {"message": "Hello World"}
     return {"message": "Unauthorized"}
 
-@app.get("/v1/api/welcome")
-async def third_party(api_key: str = Depends(get_api_key)):
-    return {"msg": "This is an authenticated route for external app", "api_key": api_key}
+@app.post("/api/chat")
+async def chat(message: ChatMessages, secret_key: str = Depends(get_secret_key)):
+    # for running LLM models
+    pass
+
+@app.post("/api/finetuning/openai")
+async def finetune(
+    file: UploadFile = File(...),
+    fine_tuning_model: str = Form(..., alias='finetuning'),
+    n_epochs: int = Form(..., alias='epochs'),
+    secret_key: str = Depends(get_secret_key)
+):
+    file_content = await file.read()
+    file_str = file_content.decode('utf-8')
+    file_list = [json.loads(line) for line in file_str.splitlines() if line]
+   
+    data_format_errors = validate_data_format(file_list)
+    messages_errors = validate_messages(file_list)
+    
+    if not messages_errors and not data_format_errors:
+        try:
+            openai.api_key = os.getenv("OPENAI_API_KEY")
+            
+            file_submit_result = await upload_training_file(file_content)
+            file_id = file_submit_result["id"]
+
+            res = await fine_tune_openai_model(file_id, fine_tuning_model, n_epochs)
+            fine_tuning_job_id = res["id"]
+            return {
+                "success": True, 
+                "id": fine_tuning_job_id,  
+                "message": "Your request has been successfully sent to OpenAI"}
+        except Exception as e:
+             raise HTTPException(detail=str(e))
+    else:
+        errors = {
+            "data_format": validate_data_format,
+            "messages": validate_messages
+        }
+        return {
+            "success": False,
+            "id": fine_tuning_job_id, 
+            "error": errors
+        }  
+
+@app.post("/api/finetuning/peft")
+async def finetune( 
+    file: UploadFile = File(...),
+    fine_tuning_model: str = Form(..., alias='finetuning'),
+    epochs: int = Form(...),
+    batch_size: Optional[int] = Form(None, alias='batchSize'),
+    learning_rate_multiplier: Optional[float] = Form(None, alias='learningRateMultiplier'),
+    prompt_loss_weight: Optional[float] = Form(None, alias='promptLossWeight'),
+    secret_key: str = Depends(get_secret_key)
+):
+    content = await file.read()
+    specs = FineTuningSpecs(
+        fine_tuning_model=fine_tuning_model,
+        epochs=epochs,
+        batch_size=batch_size,
+        learning_rate_multiplier=learning_rate_multiplier,
+        prompt_loss_weight=prompt_loss_weight
+    )
+    # process and validate the uploaded file/data
+    # run fine-tuning work (DeepSpeed ZeRO, LoRA, Flash Attention)
+    # pass
