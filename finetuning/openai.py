@@ -12,13 +12,18 @@ async def upload_training_file(file_content):
     except Exception as e:
         raise ValueError(f"An error occurred: {str(e)}")
 
-async def fine_tune_openai_model(file_id, fine_tuning_model, n_epochs):
+async def fine_tune_openai_model(file_id, fine_tuning_model, suffix, n_epochs):   
     try:
-        res = FineTuningJob.create(
-            training_file=file_id,
-            model=fine_tuning_model,
-            hyperparameters={"n_epochs": n_epochs}
-        )
+        parameters = {
+            'training_file': file_id,
+            'model': fine_tuning_model,
+        }
+        if suffix != '':
+            parameters['suffix'] = suffix
+        if n_epochs != '':
+            parameters['hyperparameters'] = {'n_epochs': n_epochs}
+
+        res = FineTuningJob.create( **parameters )
         return  res["fine_tuned_model"]
     except Exception as e:
         raise ValueError(f"An error occurred: {str(e)}")

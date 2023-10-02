@@ -2,7 +2,7 @@ import os, json
 from datetime import timedelta
 from typing import Annotated, Optional
 
-from fastapi import FastAPI, HTTPException, UploadFile, BackgroundTasks, Header, Depends, Form, File
+from fastapi import FastAPI, HTTPException, UploadFile,  Header, Depends, Form, File
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -21,7 +21,7 @@ app.add_middleware(
     allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 load_dotenv()  # Load environment variables from .env file
@@ -71,6 +71,7 @@ async def chat(message: ChatMessages, secret_key: str = Depends(get_secret_key))
 async def finetune(
     file: UploadFile = File(...),
     fine_tuning_model: str = Form(..., alias='finetuning'),
+    suffix: str = Optional[str],
     n_epochs: int = Form(..., alias='epochs'),
     secret_key: str = Depends(get_secret_key)
 ):
@@ -88,8 +89,9 @@ async def finetune(
             file_submit_result = await upload_training_file(file_content)
             file_id = file_submit_result["id"]
 
-            res = await fine_tune_openai_model(file_id, fine_tuning_model, n_epochs)
+            res = await fine_tune_openai_model(file_id, fine_tuning_model, suffix, n_epochs)
             fine_tuning_job_id = res["id"]
+
             return {
                 "success": True, 
                 "id": fine_tuning_job_id,  
