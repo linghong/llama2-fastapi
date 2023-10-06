@@ -2,6 +2,7 @@ import os, json
 from datetime import timedelta
 from typing import Annotated, Optional
 
+import openai
 from fastapi import FastAPI, HTTPException, UploadFile,  Header, Depends, Form, File
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,9 +13,17 @@ from models import Token, User, ChatMessages, FineTuningSpecs
 from finetuning.openai import upload_training_file, fine_tune_openai_model
 from finetuning.validation import validate_data_format, validate_messages
 from dependencies import *
-import openai
+from ai_models.model_loader import load_model_base, load_model_gptq
+
 
 app = FastAPI()
+
+#model_name="TheBloke/Llama-2-7B-GPTQ"
+#load_model_gptq(model_name)
+
+#model_name = "TheBloke/Llama-2-7B-GGUF"
+model_id = 'meta-llama/Llama-2-7b-chat-hf'
+load_model_base(model_id)
 
 app.add_middleware(
     CORSMiddleware,
@@ -63,8 +72,11 @@ async def root(current_user: User = Depends(get_current_active_user)):
     return {"message": "Unauthorized"}
 
 @app.post("/api/chat")
-async def chat(message: ChatMessages, secret_key: str = Depends(get_secret_key)):
-    # for running LLM models
+async def chat(
+    message: ChatMessages,
+    model_name: str,
+    secret_key: str = Depends(get_secret_key
+)):
     pass
 
 @app.post("/api/finetuning/openai")
