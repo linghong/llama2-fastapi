@@ -38,3 +38,5 @@ uvicorn.log
 .ipynb_checkpoints
 
 .env
+
+load_models/models

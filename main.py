@@ -13,17 +13,12 @@ from models import Token, User, ChatMessages, FineTuningSpecs
 from finetuning.openai import upload_training_file, fine_tune_openai_model
 from finetuning.validation import validate_data_format, validate_messages
 from dependencies import *
-from ai_models.model_loader import load_model_base, load_model_gptq
-
+from load_models.model_loader import load_model_base
 
 app = FastAPI()
 
-#model_name="TheBloke/Llama-2-7B-GPTQ"
-#load_model_gptq(model_name)
-
-#model_name = "TheBloke/Llama-2-7B-GGUF"
 model_id = 'meta-llama/Llama-2-7b-chat-hf'
-load_model_base(model_id)
+model, tokenizer = load_model_base(model_id)
 
 app.add_middleware(
     CORSMiddleware,
