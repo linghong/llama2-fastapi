@@ -8,3 +8,7 @@ python-dotenv==1.0.0
 openai==0.28.1
 tiktoken==0.5.1
 transformers==4.34.0
+optimum==1.13.2
+torch==2.1.0
+einops==0.7.0
+accelerate==0.23.0

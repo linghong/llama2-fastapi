@@ -1,7 +1,6 @@
 import os, json
 from datetime import timedelta
 from typing import Annotated, Optional
-
 import openai
 from fastapi import FastAPI, HTTPException, UploadFile,  Header, Depends, Form, File
 from fastapi.security import OAuth2PasswordRequestForm
@@ -13,12 +12,9 @@ from models import Token, User, ChatMessages, FineTuningSpecs
 from finetuning.openai import upload_training_file, fine_tune_openai_model
 from finetuning.validation import validate_data_format, validate_messages
 from dependencies import *
-from load_models.model_loader import load_model_base
+from load_models.model_loader import load_model
 
 app = FastAPI()
-
-model_id = 'meta-llama/Llama-2-7b-chat-hf'
-model, tokenizer = load_model_base(model_id)
 
 app.add_middleware(
     CORSMiddleware,
