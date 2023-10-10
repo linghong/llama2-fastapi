@@ -59,7 +59,7 @@ def load_models(models):
 
         model, tokenizer = load_model(model_name, require_auth, trust_remote_code)
         
-        loaded_models[key] = {
+        loaded_models[model_name] = {
             'model': model,
             'tokenizer': tokenizer
         }

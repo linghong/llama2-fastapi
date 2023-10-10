@@ -12,9 +12,12 @@ from models import Token, User, ChatMessages, FineTuningSpecs
 from finetuning.openai import upload_training_file, fine_tune_openai_model
 from finetuning.validation import validate_data_format, validate_messages
 from dependencies import *
-from load_models.model_loader import load_model
+from load_models.model_list import models
+from load_models.model_loader import load_models
 
 app = FastAPI()
+
+loaded_models = load_models(models)
 
 app.add_middleware(
     CORSMiddleware,
