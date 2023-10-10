@@ -1,6 +1,7 @@
 import os
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
+
 from config import HUGGINGFACE_ACCESS_TOKEN
 
 def load_model(
@@ -48,3 +49,19 @@ def load_model(
 
     return model, tokenizer
 
+def load_models(models):
+    loaded_models = {}
+    
+    for key, value in models.items():
+        model_name = value['name']
+        require_auth = value['require_auth']
+        trust_remote_code = value['trust_remote_code']
+
+        model, tokenizer = load_model(model_name, require_auth, trust_remote_code)
+        
+        loaded_models[key] = {
+            'model': model,
+            'tokenizer': tokenizer
+        }
+    
+    return loaded_models
