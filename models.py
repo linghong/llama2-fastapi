@@ -1,5 +1,5 @@
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class Token(BaseModel):
@@ -24,8 +24,9 @@ class ChatMessage(BaseModel):
 
 class ChatMessages(BaseModel):
     question: str
-    chatHistory: List[ChatMessage]
-    selectedModel: str
+    chat_history: List[ChatMessage] = Field(alias="chatHistory")
+    selected_model: str = Field(alias="selectedModel")
+    fetched_text: str = Field(alias="fetchedText")
 
 class FineTuningSpecs(BaseModel):
     finetuning: str

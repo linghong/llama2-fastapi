@@ -14,6 +14,7 @@ from finetuning.validation import validate_data_format, validate_messages
 from dependencies import *
 from load_models.model_list import models
 from load_models.model_loader import load_models
+from inference.text_generator import generate_text_phi1_5, create_prompt, generate_text_pipeline
 
 app = FastAPI()
 
@@ -65,13 +66,33 @@ async def root(current_user: User = Depends(get_current_active_user)):
         return {"message": "Hello World"}
     return {"message": "Unauthorized"}
 
-@app.post("/api/chat")
+@app.post("/api/chat/opensourcemodel")
 async def chat(
-    message: ChatMessages,
-    model_name: str,
+    chat_messages: ChatMessages,
     secret_key: str = Depends(get_secret_key
 )):
-    pass
+    model_name = chat_messages.selected_model
+    chat_history = chat_messages.chat_history
+    # Ensure that 'model_name' is a valid key in 'loaded_models'
+    if model_name not in loaded_models.keys():
+        raise HTTPException(status_code=400, detail="Invalid model name")
+
+    model = loaded_models[model_name]['model']
+    tokenizer = loaded_models[model_name]['tokenizer']
+    try:
+        if model_name == "microsoft/phi-1_5":
+            question = chat_messages.question        
+            generated_text = generate_text_phi1_5(model, tokenizer, question)
+        else:
+            prompt = create_prompt(models, model_name, chat_history)
+            generated_text = generate_text_pipeline(model, tokenizer, prompt)
+
+        return {
+            "success": True, 
+            "message": generated_text
+        }
+    except Exception as e:
+             raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/finetuning/openai")
 async def finetune(

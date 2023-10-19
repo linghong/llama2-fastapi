@@ -22,15 +22,17 @@ def generate_text_pipeline(model, tokenizer, prompt, max_new_tokens=300):
     return ai_response
 
 def generate_text_phi1_5(model, tokenizer, prompt, max_new_tokens=50):
-    inputs = tokenizer(prompt, return_tensors='pt', return_attention_mask=False)
+    inputs = tokenizer(
+        prompt, 
+        return_tensors='pt', return_attention_mask=False
+    )
     
-    outputs = model.generate(**inputs, max_new_tokens=max_new_tokens)
+    outputs = model.generate(**inputs, max_length=max_new_tokens)
     generated_text = tokenizer.batch_decode(outputs)[0]
    
     return generated_text
 
 # this is temporary solution
-
 def create_prompt(models, model_name, chat_history):
     # Get the template for the specified model
     template_str = models[model_name]['prompt_template']

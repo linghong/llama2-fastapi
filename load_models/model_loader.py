@@ -49,6 +49,7 @@ def load_model(
 
     return model, tokenizer
 
+# load all models when the application starts is a temporary solution currently
 def load_models(models):
     loaded_models = {}
     
