@@ -72,7 +72,8 @@ async def chat(
     secret_key: str = Depends(get_secret_key
 )):
     model_name = chat_messages.selected_model
-    chat_history = chat_messages.chat_history
+    question = chat_messages.question
+  
     # Ensure that 'model_name' is a valid key in 'loaded_models'
     if model_name not in loaded_models.keys():
         raise HTTPException(status_code=400, detail="Invalid model name")
@@ -80,11 +81,14 @@ async def chat(
     model = loaded_models[model_name]['model']
     tokenizer = loaded_models[model_name]['tokenizer']
     try:
-        if model_name == "microsoft/phi-1_5":
-            question = chat_messages.question        
+        if model_name == "microsoft/phi-1_5":  
             generated_text = generate_text_phi1_5(model, tokenizer, question)
+
         else:
-            prompt = create_prompt(models, model_name, chat_history)
+            chat_history = chat_messages.chat_history
+            base_prompt = chat_messages.basePrompt
+            fetched_text = chat_messages.fetched_text
+            prompt = create_prompt(models, model_name, base_prompt, question, chat_history, fetched_text)
             generated_text = generate_text_pipeline(model, tokenizer, prompt)
 
         return {
