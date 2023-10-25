@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 
 load_dotenv()  # Load environment variables from .env file
 
+CACHE_DIR = "./load_models/models"
+
 # key for user auth
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
