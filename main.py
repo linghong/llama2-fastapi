@@ -12,7 +12,7 @@ from finetuning.openai import upload_training_file, fine_tune_openai_model
 from finetuning.validation import validate_data_format, validate_messages
 from user_auth import *
 from load_models.model_list import models
-from load_models.model_loader import load_models
+from load_models.model_loader import load_model, load_models
 from inference.text_generator import generate_text_phi1_5, create_prompt, generate_text_pipeline
 
 app = FastAPI()
@@ -71,8 +71,21 @@ async def chat(
     question = chat_messages.question
   
     # Ensure that 'model_name' is a valid key in 'loaded_models'
-    if model_name not in loaded_models.keys():
+    model_key = model_name.split("/").pop()
+    if model_key not in models.keys():
         raise HTTPException(status_code=400, detail="Invalid model name")
+    
+    if model_name not in loaded_models.keys():
+        current_model = models[model_key]
+        
+        require_auth = current_model['require_auth']
+        trust_remote_code = current_model['trust_remote_code']
+        model, tokenizer = load_model(model_name, require_auth, trust_remote_code)
+        
+        loaded_models[model_name] = {
+            'model': model,
+            'tokenizer': tokenizer
+        }
 
     model = loaded_models[model_name]['model']
     tokenizer = loaded_models[model_name]['tokenizer']

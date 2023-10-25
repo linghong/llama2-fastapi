@@ -53,16 +53,17 @@ def load_model(
 def load_models(models):
     loaded_models = {}
     
-    for key, value in models.items():
-        model_name = value['name']
-        require_auth = value['require_auth']
-        trust_remote_code = value['trust_remote_code']
-
-        model, tokenizer = load_model(model_name, require_auth, trust_remote_code)
-        
-        loaded_models[model_name] = {
-            'model': model,
-            'tokenizer': tokenizer
-        }
+    for key, value in models.items():       
+        preload = value["preload"]
+        if preload:
+            model_name = value['name']
+            require_auth = value['require_auth']
+            trust_remote_code = value['trust_remote_code']
+            model, tokenizer = load_model(model_name, require_auth, trust_remote_code)
+            
+            loaded_models[model_name] = {
+                'model': model,
+                'tokenizer': tokenizer
+            }
     
     return loaded_models
