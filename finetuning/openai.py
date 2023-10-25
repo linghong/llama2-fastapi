@@ -1,9 +1,9 @@
-import os
+import os, logging
 from openai import File, FineTuningJob
 
 async def upload_training_file(file_content):
     try:
-        print('sending data to OpenAI...')
+        logging.info('sending data to OpenAI...')
         res = File.create(
             file=file_content,
             purpose='fine-tune' 

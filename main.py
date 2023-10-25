@@ -1,19 +1,24 @@
-import os, json
+import json
+import logging
 from datetime import timedelta
 from typing import Annotated, Optional
 import openai
-from fastapi import FastAPI, HTTPException, UploadFile,  Header, Depends, Form, File
+from fastapi import FastAPI, HTTPException, UploadFile, status, Header, Depends, Form, File
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 
-from config import *
-from models import Token, User, ChatMessages, FineTuningSpecs
-from finetuning.openai import upload_training_file, fine_tune_openai_model
+from config import ACCESS_TOKEN_EXPIRE_MINUTES, API_SECRET_KEY, OPENAI_API_KEY
+from database import fake_users_db
+from finetuning.openai import fine_tune_openai_model, upload_training_file
 from finetuning.validation import validate_data_format, validate_messages
-from user_auth import *
 from load_models.model_list import models
 from load_models.model_loader import load_model, load_models
-from inference.text_generator import generate_text_phi1_5, create_prompt, generate_text_pipeline
+from inference.text_generator import create_prompt, generate_text_phi1_5,  generate_text_pipeline
+from models import ChatMessages, FineTuningSpecs, Token, User
+from user_auth import authenticate_user, create_access_token, get_current_active_user
+
+logging.basicConfig(filename='application.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.info(f"Starting a new instance of Smartchat FastAPI application...")
 
 app = FastAPI()
 

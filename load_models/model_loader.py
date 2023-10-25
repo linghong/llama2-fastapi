@@ -1,8 +1,8 @@
-import os
+import os, logging
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-
 from config import HUGGINGFACE_ACCESS_TOKEN
+
 
 def load_model(
     model_name: str, 
@@ -31,11 +31,11 @@ def load_model(
         if require_auth:
             tokenizer.pad_token = tokenizer.eos_token
         
-        print(f"Model {model_name} loaded from Hugging Face")
+        logging.info(f"Model {model_name} loaded from Hugging Face")
 
         tokenizer.save_pretrained(model_path)
         model.save_pretrained(model_path)
-        print(f"Model {model_name} saved locally for future use")
+        logging.info(f"Model {model_name} saved locally for future use")
     else:
         tokenizer = AutoTokenizer.from_pretrained(
             model_path,
@@ -45,7 +45,7 @@ def load_model(
             model_path,
             trust_remote_code=trust_remote
         )
-        print(f"Model {model_name} loaded from local")
+        logging.info(f"Model {model_name} loaded from local")
 
     return model, tokenizer
 

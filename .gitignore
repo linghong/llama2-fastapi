@@ -40,3 +40,4 @@ uvicorn.log
 .env
 
 load_models/models
+*.log
