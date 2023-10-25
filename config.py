@@ -1,11 +1,17 @@
 import os
 from dotenv import load_dotenv
 
-# to get a string like this run:
-# openssl rand -hex 32
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+load_dotenv()  # Load environment variables from .env file
+
+# key for user auth
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-load_dotenv()  # Load environment variables from .env file
+# key used for send data to the API end points
+API_SECRET_KEY = os.getenv("API_SECRET_KEY")
+
+OPENAI_API_KEY =  os.getenv("OPENAI_API_KEY")
+
+
 HUGGINGFACE_ACCESS_TOKEN = os.getenv("HUGGINGFACE_ACCESS_TOKEN")

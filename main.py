@@ -5,13 +5,12 @@ import openai
 from fastapi import FastAPI, HTTPException, UploadFile,  Header, Depends, Form, File
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
 
 from config import *
 from models import Token, User, ChatMessages, FineTuningSpecs
 from finetuning.openai import upload_training_file, fine_tune_openai_model
 from finetuning.validation import validate_data_format, validate_messages
-from dependencies import *
+from user_auth import *
 from load_models.model_list import models
 from load_models.model_loader import load_models
 from inference.text_generator import generate_text_phi1_5, create_prompt, generate_text_pipeline
@@ -28,18 +27,15 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
-load_dotenv()  # Load environment variables from .env file
-SECRET_KEY = os.getenv("SECRET_KEY")
-
-async def get_secret_key(authorization: str = Header(...)):
+async def get_api_secret_key(authorization: str = Header(...)):
     prefix = "Bearer "
     if not authorization.startswith(prefix):
-        raise HTTPException(status_code=401, detail="Unauthorized: Invalid Secret Key")
-    secret_key = authorization[len(prefix):]
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid API Secret Key")
+    api_secret_key = authorization[len(prefix):]
 
-    if secret_key != SECRET_KEY:
-        raise HTTPException(status_code=401, detail="Unauthorized: Invalid Secret Key")
-    return secret_key
+    if api_secret_key != API_SECRET_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid API Secret Key")
+    return api_secret_key
 
 @app.post("/token", response_model=Token)
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
@@ -69,7 +65,7 @@ async def root(current_user: User = Depends(get_current_active_user)):
 @app.post("/api/chat/opensourcemodel")
 async def chat(
     chat_messages: ChatMessages,
-    secret_key: str = Depends(get_secret_key
+    api_secret_key: str = Depends(get_api_secret_key
 )):
     model_name = chat_messages.selected_model
     question = chat_messages.question
@@ -104,7 +100,7 @@ async def finetune(
     fine_tuning_model: str = Form(..., alias='finetuning'),
     suffix: str = Optional[str],
     n_epochs: int = Form(..., alias='epochs'),
-    secret_key: str = Depends(get_secret_key)
+    api_secret_key: str = Depends(get_api_secret_key)
 ):
     file_content = await file.read()
     file_str = file_content.decode('utf-8')
@@ -115,7 +111,7 @@ async def finetune(
     
     if not messages_errors and not data_format_errors:
         try:
-            openai.api_key = os.getenv("OPENAI_API_KEY")
+            openai.api_key = OPENAI_API_KEY
             
             file_submit_result = await upload_training_file(file_content)
             file_id = file_submit_result["id"]
@@ -148,7 +144,7 @@ async def finetune(
     batch_size: Optional[int] = Form(None, alias='batchSize'),
     learning_rate_multiplier: Optional[float] = Form(None, alias='learningRateMultiplier'),
     prompt_loss_weight: Optional[float] = Form(None, alias='promptLossWeight'),
-    secret_key: str = Depends(get_secret_key)
+    api_secret_key: str = Depends(get_api_secret_key)
 ):
     content = await file.read()
     specs = FineTuningSpecs(
