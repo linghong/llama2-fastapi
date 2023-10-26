@@ -7,8 +7,9 @@ python-multipart==0.0.6
 python-dotenv==1.0.0
 openai==0.28.1
 tiktoken==0.5.1
-transformers==4.34.0
+transformers==4.34.1
 optimum==1.13.2
 torch==2.1.0
 einops==0.7.0
 accelerate==0.23.0
+pre-commit==4.5.0
