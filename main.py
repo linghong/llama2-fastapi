@@ -119,15 +119,15 @@ async def chat(
 
     if model_name not in loaded_models.keys():
         current_model = models[model_key]
-
         require_auth = current_model["require_auth"]
         trust_remote_code = current_model["trust_remote_code"]
-        model, tokenizer = load_model(model_name, require_auth, trust_remote_code)
 
+        model, tokenizer = load_model(model_name, require_auth, trust_remote_code)
         loaded_models[model_name] = {"model": model, "tokenizer": tokenizer}
 
     model = loaded_models[model_name]["model"]
     tokenizer = loaded_models[model_name]["tokenizer"]
+
     try:
         if model_name == "microsoft/phi-1_5":
             generated_text = generate_text_phi1_5(model, tokenizer, question)
@@ -136,13 +136,14 @@ async def chat(
             chat_history = chat_messages.chat_history
             base_prompt = chat_messages.base_prompt
             fetched_text = chat_messages.fetched_text
-            prompt = create_prompt(
+            success, prompt = create_prompt(
                 models, model_name, base_prompt, question, chat_history, fetched_text
             )
             generated_text = generate_text_pipeline(model, tokenizer, prompt)
 
         return {"success": True, "message": generated_text}
     except Exception as e:
+        logging.error(f"Error in chat endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

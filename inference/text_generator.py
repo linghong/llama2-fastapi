@@ -20,8 +20,9 @@ def generate_text_pipeline(model, tokenizer, prompt, max_new_tokens=300):
     try:
         generate_text = pipeline(
             "text-generation",  # task name must be the first argument
-            model=model,
+            model=model.to("cuda"),
             tokenizer=tokenizer,
+            device=0,
             config={
                 "max_new_tokens": max_new_tokens,
                 "return_full_text": True,
@@ -33,7 +34,9 @@ def generate_text_pipeline(model, tokenizer, prompt, max_new_tokens=300):
             },
         )
         res = generate_text(prompt)
-        ai_response = res[0]["generated_text"]
+        prompt_len = len(prompt)
+        ai_response = res[0]["generated_text"][prompt_len:]
+
     except Exception as e:
         logging.erro(f"An error occured in generate_text_pipeline: {str(e)}")
         return None
@@ -65,11 +68,10 @@ def generate_text_phi1_5(model, tokenizer, prompt, max_new_tokens=50):
 
 
 def create_prompt(
-    models, model_name, base_prompt, question, chat_history, fetched_text
+    models, full_model_name, base_prompt, question, chat_history, fetched_text
 ):
     """
     Creates a text generation prompt based on specified parameters.
-    Note: This is a temporary solution and does not account for exceeding the model's maximum token limit.
 
     Parameters:
     - models (dict): Dictionary of available models and their configurations.
@@ -84,21 +86,22 @@ def create_prompt(
     """
 
     try:
+        model_name = full_model_name.split("/")[1]
         template_str = models[model_name]["prompt_template"]
         template = Template(template_str)
 
         system_prompt = "You are an AI assistant, skilled and equipped with a specialized data source as well as a vast reservoir of general knowledge. When a user presents a question, they can prompt you to extract relevant information from this data source. If information is obtained, it will be flagged with '''fStart and closed with fEnd'''. Only use the fetched data if it is directly relevant to the user's question and can contribute to a reasonable correct answer. Otherwise, rely on your pre-existing knowledge to provide the best possible response. Also, only give answer for the question asked, don't provide text not related to the user's question. "
+        system_combined = system_prompt + base_prompt
 
         if fetched_text != "":
             user_message = f"{question}\n'''fStart {fetched_text} fEnd'''"
         else:
             user_message = question
 
-        combined_chat_history = chat_history.push({"question": user_message})
-
         prompt = template.render(
-            system=system_prompt + base_prompt, instructions=combined_chat_history
+            system=system_combined, instructions=chat_history, question=user_message
         )
     except Exception as e:
         logging.error(f"An error occurred in create_prompt: {str(e)}")
-    return prompt
+        return False, str(e)
+    return True, prompt
