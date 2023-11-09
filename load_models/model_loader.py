@@ -1,5 +1,6 @@
 import os
 import logging
+import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from config import HUGGINGFACE_ACCESS_TOKEN, CACHE_DIR
@@ -31,10 +32,10 @@ def load_model(
         if not os.path.exists(model_path):
             model = AutoModelForCausalLM.from_pretrained(
                 model_name,
-                device_map="auto",
+                torch_dtype=torch.float16,
                 use_auth_token=hf_auth,
                 trust_remote_code=trust_remote,
-            )
+            ).to("cuda")
             tokenizer = AutoTokenizer.from_pretrained(
                 model_name,
                 use_fast=True,
