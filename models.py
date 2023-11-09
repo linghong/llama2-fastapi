@@ -29,7 +29,7 @@ class ChatMessage(BaseModel):
 
 class ChatMessages(BaseModel):
     question: str
-    base_prompt: str = Field(alias="fetchedText")
+    base_prompt: str = Field(alias="basePrompt")
     chat_history: List[ChatMessage] = Field(alias="chatHistory")
     selected_model: str = Field(alias="selectedModel")
     fetched_text: str = Field(alias="fetchedText")
