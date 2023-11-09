@@ -33,13 +33,13 @@ def load_model(
             model = AutoModelForCausalLM.from_pretrained(
                 model_name,
                 torch_dtype=torch.float16,
-                use_auth_token=hf_auth,
+                token=hf_auth,
                 trust_remote_code=trust_remote,
             ).to("cuda")
             tokenizer = AutoTokenizer.from_pretrained(
                 model_name,
                 use_fast=True,
-                use_auth_token=hf_auth,
+                token=hf_auth,
                 trust_remote_code=trust_remote,
             )
 
