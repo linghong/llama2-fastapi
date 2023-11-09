@@ -9,7 +9,7 @@ models = {
         "trust_remote_code": False,
         "additional_packages": [],
         "preload": False,
-        "prompt_template": """<s>[INST]<SYS>>\n{{ system }}\n<</SYS>>\n\n{% for item in instructions %}[INST]{{ item.question }}[/INST]{{ item.answer }}{% endfor %}</s>""",
+        "prompt_template": """<s>[INST]<<SYS>>\n{{ system }}\n<</SYS>>\n\n[/INST]</s><s>{% for item in instructions %}[INST]{{ item.question }}[/INST]{{ item.answer }}</s>{% endfor %}<s>[INST]{{ question }}[/INST]""",
     },
     "phi-1_5": {
         "name": "microsoft/phi-1_5",
