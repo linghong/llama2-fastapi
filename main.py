@@ -16,7 +16,12 @@ from fastapi import (
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 
-from config import ACCESS_TOKEN_EXPIRE_MINUTES, API_SECRET_KEY, OPENAI_API_KEY
+from config import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    API_SECRET_KEY,
+    OPENAI_API_KEY,
+    YOUR_CLIENT_SITE_ADDRESS,
+)
 from database import fake_users_db
 from finetuning.openai import fine_tune_openai_model, upload_training_file
 from finetuning.validation import validate_data_format, validate_messages
@@ -30,6 +35,7 @@ from inference.text_generator import (
 from models import ChatMessages, FineTuningSpecs, Token, User
 from user_auth import authenticate_user, create_access_token, get_current_active_user
 
+
 logging.basicConfig(
     filename="application.log",
     level=logging.INFO,
@@ -37,13 +43,17 @@ logging.basicConfig(
 )
 logging.info("Starting a new instance of Smartchat FastAPI application...")
 
+if not API_SECRET_KEY:
+    logging.error(f"Unable to Fetch API Secert Key")
+    raise Exception("Unable to Fetch API Secert Key")
+
 app = FastAPI()
 
 loaded_models = load_models(models)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", YOUR_CLIENT_SITE_ADDRESS],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["Authorization", "Content-Type"],
@@ -124,7 +134,7 @@ async def chat(
 
         else:
             chat_history = chat_messages.chat_history
-            base_prompt = chat_messages.basePrompt
+            base_prompt = chat_messages.base_prompt
             fetched_text = chat_messages.fetched_text
             prompt = create_prompt(
                 models, model_name, base_prompt, question, chat_history, fetched_text
