@@ -56,8 +56,8 @@ def load_model(
                 model_path, trust_remote_code=trust_remote
             )
             model = AutoModelForCausalLM.from_pretrained(
-                model_path, trust_remote_code=trust_remote
-            )
+                model_path, torch_dtype=torch.float16, trust_remote_code=trust_remote
+            ).to("cuda")
             logging.info(f"Model {model_name} loaded from local")
     except Exception as e:
         logging.error(f"An error occurred while loading the model: {str(e)}")

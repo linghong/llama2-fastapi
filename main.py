@@ -44,7 +44,7 @@ logging.basicConfig(
 logging.info("Starting a new instance of Smartchat FastAPI application...")
 
 if not API_SECRET_KEY:
-    logging.error(f"Unable to Fetch API Secert Key")
+    logging.error("Unable to Fetch API Secert Key")
     raise Exception("Unable to Fetch API Secert Key")
 
 app = FastAPI()
