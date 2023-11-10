@@ -38,7 +38,7 @@ def generate_text_pipeline(model, tokenizer, prompt, max_new_tokens=300):
         ai_response = res[0]["generated_text"][prompt_len:]
 
     except Exception as e:
-        logging.erro(f"An error occured in generate_text_pipeline: {str(e)}")
+        logging.error(f"An error occured in generate_text_pipeline: {str(e)}")
         return None
     return ai_response
 
