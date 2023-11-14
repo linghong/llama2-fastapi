@@ -21,6 +21,7 @@ from config import (
     API_SECRET_KEY,
     OPENAI_API_KEY,
     YOUR_CLIENT_SITE_ADDRESS,
+    DEVICE_TYPE,
 )
 from database import fake_users_db
 from finetuning.openai import fine_tune_openai_model, upload_training_file
@@ -41,7 +42,9 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
-logging.info("Starting a new instance of Smartchat FastAPI application...")
+logging.info(
+    f"Starting a new instance of Smartchat FastAPI application in { DEVICE_TYPE }..."
+)
 
 if not API_SECRET_KEY:
     logging.error("Unable to Fetch API Secert Key")
@@ -105,8 +108,41 @@ async def root(current_user: User = Depends(get_current_active_user)):
     return {"message": "Unauthorized"}
 
 
-@app.post("/api/chat/opensourcemodel")
-async def chat(
+@app.post("/api/chat_cpu")
+async def chat_cpu(
+    chat_messages: ChatMessages, api_secret_key: str = Depends(get_api_secret_key)
+):
+    model_name = chat_messages.selected_model
+    question = chat_messages.question
+
+    # Ensure that 'model_name' is a valid key in 'loaded_models'
+    model_key = model_name.split("/").pop()
+    if model_key not in models.keys():
+        raise HTTPException(status_code=400, detail="Invalid model name")
+
+    if model_name not in loaded_models.keys():
+        current_model = models[model_key]
+        require_auth = current_model["require_auth"]
+        trust_remote_code = current_model["trust_remote_code"]
+
+        model, tokenizer = load_model(model_name, require_auth, trust_remote_code)
+
+        loaded_models[model_name] = {"model": model, "tokenizer": tokenizer}
+
+    model = loaded_models[model_name]["model"]
+    tokenizer = loaded_models[model_name]["tokenizer"]
+
+    try:
+        generated_text = generate_text_phi1_5(model, tokenizer, question)
+
+        return {"success": True, "message": generated_text}
+    except Exception as e:
+        logging.error(f"Error in chat endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/chat_gpu")
+async def chat_gpu(
     chat_messages: ChatMessages, api_secret_key: str = Depends(get_api_secret_key)
 ):
     model_name = chat_messages.selected_model
@@ -129,17 +165,13 @@ async def chat(
     tokenizer = loaded_models[model_name]["tokenizer"]
 
     try:
-        if model_name == "microsoft/phi-1_5":
-            generated_text = generate_text_phi1_5(model, tokenizer, question)
-
-        else:
-            chat_history = chat_messages.chat_history
-            base_prompt = chat_messages.base_prompt
-            fetched_text = chat_messages.fetched_text
-            success, prompt = create_prompt(
-                models, model_name, base_prompt, question, chat_history, fetched_text
-            )
-            generated_text = generate_text_pipeline(model, tokenizer, prompt)
+        chat_history = chat_messages.chat_history
+        base_prompt = chat_messages.base_prompt
+        fetched_text = chat_messages.fetched_text
+        success, prompt = create_prompt(
+            models, model_name, base_prompt, question, chat_history, fetched_text
+        )
+        generated_text = generate_text_pipeline(model, tokenizer, prompt)
 
         return {"success": True, "message": generated_text}
     except Exception as e:

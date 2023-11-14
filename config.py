@@ -5,6 +5,9 @@ load_dotenv()  # Load environment variables from .env file
 
 CACHE_DIR = "./load_models/models"
 
+# environment
+DEVICE_TYPE = os.getenv("DEVICE")
+
 # key for user auth
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"

@@ -3,7 +3,7 @@ import logging
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-from config import HUGGINGFACE_ACCESS_TOKEN, CACHE_DIR
+from config import HUGGINGFACE_ACCESS_TOKEN, CACHE_DIR, DEVICE_TYPE
 
 
 def load_model(
@@ -29,13 +29,16 @@ def load_model(
     model_path = os.path.join(cache_dir, model_name)
 
     try:
+        device = "cuda" if DEVICE_TYPE == "gpu" and torch.cuda.is_available() else "cpu"
+        dtype = torch.float16 if device == "cuda" else torch.float32
+
         if not os.path.exists(model_path):
             model = AutoModelForCausalLM.from_pretrained(
                 model_name,
-                torch_dtype=torch.float16,
+                torch_dtype=dtype,
                 token=hf_auth,
                 trust_remote_code=trust_remote,
-            ).to("cuda")
+            ).to(device)
             tokenizer = AutoTokenizer.from_pretrained(
                 model_name,
                 use_fast=True,
@@ -56,8 +59,8 @@ def load_model(
                 model_path, trust_remote_code=trust_remote
             )
             model = AutoModelForCausalLM.from_pretrained(
-                model_path, torch_dtype=torch.float16, trust_remote_code=trust_remote
-            ).to("cuda")
+                model_path, torch_dtype=dtype, trust_remote_code=trust_remote
+            ).to(device)
             logging.info(f"Model {model_name} loaded from local")
     except Exception as e:
         logging.error(f"An error occurred while loading the model: {str(e)}")

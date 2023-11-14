@@ -17,6 +17,10 @@ def generate_text_pipeline(model, tokenizer, prompt, max_new_tokens=300):
     - str: The generated text.
     """
 
+    if model is None or tokenizer is None:
+        logging.error("Model or tokenizer is None in generate_text_pipeline.")
+        return None
+
     try:
         generate_text = pipeline(
             "text-generation",  # task name must be the first argument
@@ -56,6 +60,11 @@ def generate_text_phi1_5(model, tokenizer, prompt, max_new_tokens=50):
     Returns:
     - str: The generated text.
     """
+
+    if model is None or tokenizer is None:
+        logging.error("Model or tokenizer is None in generate_text_phi1_5.")
+        return None
+
     try:
         inputs = tokenizer(prompt, return_tensors="pt", return_attention_mask=False)
 
